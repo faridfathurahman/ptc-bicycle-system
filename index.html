@@ -1061,7 +1061,29 @@ actualEndTime:"-"
 alert(
 "利用開始しました (Borrow Successful)"
 );
+// =========================
+// LINE Notification Borrow
+// =========================
 
+const bikeDoc = await getDoc(doc(db,"Bikes",id));
+const bike = bikeDoc.data();
+
+await fetch("/.netlify/functions/line-notify",{
+    method:"POST",
+    headers:{
+        "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+        userId:"ISI_USER_ID_LINE",
+        message:
+`🚲 Bicycle Borrow
+
+Bike : ${bike.name}
+User : ${nama}
+ETA : ${estimasi}`
+    })
+});
+	
 await loadBikes();
 
 }
@@ -1159,6 +1181,24 @@ lastReturned: sekarang
 alert(
 "返却しました (Returned)"
 );
+// =========================
+// LINE Notification Return
+// =========================
+
+await fetch("/.netlify/functions/line-notify",{
+    method:"POST",
+    headers:{
+        "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+        userId:"ISI_USER_ID_LINE",
+        message:
+`✅ Bicycle Returned
+
+Bike : ${currentBike.name}
+User : ${currentBike.borrowedBy}`
+    })
+});
 
 await loadBikes();
 
@@ -1208,6 +1248,29 @@ status:"maintenance",
 alert(
 "不具合を登録しました (Problem Reported)"
 );
+
+// =========================
+// LINE Notification Problem
+// =========================
+
+await fetch("/.netlify/functions/line-notify",{
+    method:"POST",
+    headers:{
+        "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+        userId:"ISI_USER_ID_LINE",
+        message:
+`🔧 Bicycle Problem
+
+Bike : ${bikeName}
+Reporter : ${reporter}
+
+Problem :
+${problem}`
+    })
+});
+	
 await loadBikes();
 
 }
