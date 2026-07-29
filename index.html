@@ -1068,13 +1068,13 @@ alert(
 const bikeDoc = await getDoc(doc(db,"Bikes",id));
 const bike = bikeDoc.data();
 
-await fetch("/.netlify/functions/line-notify",{
+await fetch("/.netlify/functions/send-line",{
     method:"POST",
     headers:{
         "Content-Type":"application/json"
     },
     body:JSON.stringify({
-        userId: "Ud7e29225e426ea4d509d2edac5384028"
+        userId: "Ud7e29225e426ea4d509d2edac5384028",
         message:
 `🚲 Bicycle Borrow
 
@@ -1185,13 +1185,13 @@ alert(
 // LINE Notification Return
 // =========================
 
-await fetch("/.netlify/functions/line-notify",{
+await fetch("/.netlify/functions/send-line",{
     method:"POST",
     headers:{
         "Content-Type":"application/json"
     },
     body:JSON.stringify({
-        userId: "Ud7e29225e426ea4d509d2edac5384028"
+        userId: "Ud7e29225e426ea4d509d2edac5384028",
         message:
 `✅ Bicycle Returned
 
@@ -1253,13 +1253,13 @@ alert(
 // LINE Notification Problem
 // =========================
 
-await fetch("/.netlify/functions/line-notify",{
+await fetch("/.netlify/functions/send-line",{
     method:"POST",
     headers:{
         "Content-Type":"application/json"
     },
     body:JSON.stringify({
-        userId: "Ud7e29225e426ea4d509d2edac5384028"
+        userId: "Ud7e29225e426ea4d509d2edac5384028",
         message:
 `🔧 Bicycle Problem
 
