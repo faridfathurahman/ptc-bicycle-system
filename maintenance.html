@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>PTC Bicycle Maintenance</title>
+
+<style>
+
+body{
+font-family:Arial,sans-serif;
+background:#f5f5f5;
+padding:15px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:15px;
+margin-bottom:15px;
+box-shadow:0 2px 8px rgba(0,0,0,.15);
+overflow-x:auto;
+}
+
+.backBtn{
+display:inline-block;
+padding:10px 15px;
+background:#0078d7;
+color:white;
+text-decoration:none;
+border-radius:8px;
+margin-bottom:20px;
+}
+
+input,
+select,
+textarea{
+width:100%;
+padding:10px;
+margin-top:5px;
+margin-bottom:10px;
+border:1px solid #ccc;
+border-radius:8px;
+box-sizing:border-box;
+}
+
+button{
+padding:10px 15px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+.reportBtn{
+background:#ff9800;
+color:white;
+}
+
+.reportBtn{
+background:#ff9800;
+color:white;
+}
+
+.completeBtn{
+background:#28a745;
+color:white;
+padding:6px 12px;
+font-size:12px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th{
+background:#0078d7;
+color:white;
+padding:8px;
+}
+
+td{
+padding:8px;
+border-bottom:1px solid #ddd;
+white-space:nowrap;
+}
+
+th{
+white-space:nowrap;
+}
+
+.actionButtons{
+display:flex;
+gap:10px;
+margin-bottom:15px;
+flex-wrap:wrap;
+}
+
+.actionButtons button{
+min-width:150px;
+font-weight:bold;
+box-shadow:0 2px 6px rgba(0,0,0,.15);
+transition:.2s;
+}
+
+.actionButtons button:hover{
+transform:translateY(-2px);
+}
+
+</style>
+</head>
+
+<body>
+
+<div style="display:flex;gap:10px;margin-bottom:20px;">
+
+<a href="index.html" class="backBtn">
+← Back
+</a>
+
+<button
+id="logoutBtn"
+style="
+background:#dc3545;
+color:white;
+border:none;
+padding:10px 15px;
+border-radius:8px;
+cursor:pointer;
+display:none;
+">
+🚪 Logout
+</button>
+
+</div>
+
+<h1>
+🔧 自転車メンテナンス管理
+(Bicycle Maintenance Management)
+</h1>
+
+<div class="card">
+
+<h3>
+メンテナンス履歴
+(Maintenance History)
+</h3>
+
+<div class="actionButtons">
+
+<button
+onclick="exportExcel()"
+style="
+background:#28a745;
+color:white;
+">
+📊 Export Excel
+</button>
+
+<button
+id="clearBtn"
+onclick="clearHistory()"
+style="
+background:#dc3545;
+color:white;
+">
+🧹 Clear Maintenance (Admin)
+</button>
+
+</div>
+
+<table>
+
+<thead>
+<tr>
+<th>自転車<br>(Bike)</th>
+<th>報告者<br>(Reporter)</th>
+<th>不具合内容<br>(Problem)</th>
+<th>状態<br>(Status)</th>
+<th>修理内容<br>(Repair Action)</th>
+<th>完了日時<br>(Completed At)</th>
+<th>操作<br>(Action)</th>
+</tr>
+</thead>
+
+<tbody id="maintenanceTable">
+
+<tr>
+<td colspan="4">
+No Data
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script type="module">
+
+import {
+    auth,
+    db,
+    collection,
+    getDocs,
+    getDoc,
+    doc,
+    updateDoc,
+    deleteDoc
+} from "./js/firebase.js";
+
+import {
+    query,
+    orderBy
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+import {
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+let isAdmin = false;
+
+onAuthStateChanged(auth, (user) => {
+
+    isAdmin = !!user;
+
+    const logoutBtn =
+        document.getElementById("logoutBtn");
+
+    if(logoutBtn){
+
+        logoutBtn.style.display =
+            isAdmin ? "inline-block" : "none";
+
+    }
+
+    loadMaintenance();
+
+});
+
+async function loadMaintenance(){
+
+const q = query(
+collection(db,"Maintenance"),
+orderBy("createdAt","desc")
+);
+
+const snapshot = await getDocs(q);
+
+console.log(snapshot.size);
+
+snapshot.forEach((doc)=>{
+    console.log(doc.id, doc.data());
+});
+
+console.log(
+"Maintenance:",
+snapshot.size
+);
+
+let html = "";
+
+snapshot.forEach((item)=>{
+
+const m = item.data();
+
+html += `
+<tr>
+<td>${m.bike}</td>
+<td>${m.reportedBy}</td>
+<td>${m.problem}</td>
+<td>
+${
+m.status === "修理待ち"
+? "修理待ち<br>(Pending)"
+:
+m.status === "完了"
+? "完了<br>(Completed)"
+:
+m.status === "Pending"
+? "修理待ち<br>(Pending)"
+:
+m.status === "Completed"
+? "完了<br>(Completed)"
+:
+m.status
+}
+</td>
+<td>${m.repairAction || "-"}</td>
+<td>${m.completedAt || "-"}</td>
+<td>
+${
+m.status === "修理待ち"
+?
+`<button
+class="completeBtn"
+onclick="completeRepair('${item.id}')">
+修理完了<br>(Complete Repair)
+</button>`
+:
+"✓ Completed"
+}
+</td>
+</tr>
+`;
+
+});
+
+if(html === ""){
+
+html = `
+<tr>
+<td colspan="7">
+No Data
+</td>
+</tr>
+`;
+
+}
+
+document.getElementById(
+"maintenanceTable"
+).innerHTML = html;
+
+}
+
+
+window.completeRepair = async function(id){
+if(!isAdmin){
+    alert("Admin login required.");
+    location.href="admin.html";
+    return;
+}
+
+const repairAction = prompt(
+"修理内容を入力してください (Repair Action)"
+);
+
+if(!repairAction){
+return;
+}
+
+const maintenanceRef =
+doc(db,"Maintenance",id);
+
+await updateDoc(
+maintenanceRef,
+{
+status:"完了",
+repairAction:repairAction,
+completedAt:new Date().toLocaleString("ja-JP")
+}
+);
+
+const maintenanceDoc =
+await getDoc(maintenanceRef);
+
+const bikeName =
+maintenanceDoc.data().bike;
+
+const bikeSnapshot =
+await getDocs(
+collection(db,"Bikes")
+);
+
+for (const item of bikeSnapshot.docs){
+
+const bike = item.data();
+
+if(bike.name === bikeName){
+
+await updateDoc(
+doc(db,"Bikes",item.id),
+{
+status:"available"
+}
+);
+
+}
+
+}
+
+alert(
+"修理完了しました (Maintenance Completed)"
+);
+
+location.reload();
+
+}
+
+window.exportExcel = async function(){
+
+const snapshot =
+await getDocs(
+collection(db,"Maintenance")
+);
+
+const data = [];
+
+snapshot.forEach((item)=>{
+
+const m = item.data();
+
+data.push({
+Bike: m.bike,
+Reporter: m.reportedBy,
+Problem: m.problem,
+Status: m.status,
+RepairAction: m.repairAction || "",
+CompletedAt: m.completedAt || ""
+});
+
+});
+
+const worksheet =
+XLSX.utils.json_to_sheet(data);
+
+const workbook =
+XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(
+workbook,
+worksheet,
+"Maintenance"
+);
+
+XLSX.writeFile(
+workbook,
+`Maintenance_Report_${new Date().toISOString().slice(0,10)}.xlsx`
+);
+
+}
+
+window.clearHistory = async function(){
+
+if(!isAdmin){
+    alert("Admin login required.");
+    location.href="admin.html";
+    return;
+}
+
+if(
+!confirm(
+"完了済み履歴を削除しますか？\n(Delete completed history?)"
+)
+){
+return;
+}
+
+const snapshot =
+await getDocs(
+collection(db,"Maintenance")
+);
+
+for(const item of snapshot.docs){
+
+const m = item.data();
+
+if(
+m.status === "完了" ||
+m.status === "Completed"
+){
+
+await deleteDoc(
+doc(db,"Maintenance",item.id)
+);
+
+}
+
+}
+
+alert(
+"Completed history deleted"
+);
+
+location.reload();
+
+}
+
+// START
+
+document
+.getElementById("logoutBtn")
+.addEventListener("click", async ()=>{
+
+    await signOut(auth);
+
+    alert("Logout Success");
+
+    location.href="index.html";
+
+});
+</script>
+</body>
+</html>

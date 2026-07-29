@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PTC Bicycle Management System</title>
+
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+
+    background:
+    linear-gradient(
+    to bottom,
+    #f8fafc,
+    #eef2f7
+    );
+}
+.header{
+    position:relative;
+    text-align:center;
+    margin-bottom:20px;
+    padding:10px 0;
+}
+#themeBtn{
+    position:absolute;
+    top:20px;
+    right:20px;
+
+    background:none;
+    border:none;
+    box-shadow:none;
+
+    font-size:32px;
+    cursor:pointer;
+
+    padding:0;
+    width:auto;
+    margin:0;
+}
+
+.header h1{
+    margin:0;
+    font-size:42px;
+    font-weight:700;
+}
+
+.header p{
+    color:#777;
+    margin-top:12px;
+    font-size:18px;
+}
+
+.card{
+    background:white;
+    border-radius:18px;
+    padding:22px;
+    margin-bottom:20px;
+
+    box-shadow:
+    0 4px 12px rgba(0,0,0,.08);
+
+    transition:.2s;
+}
+.card:hover{
+    transform:translateY(-2px);
+}
+
+.maintenanceBike{
+    background:#fff8e8;
+    border-left:6px solid #ff9800;
+}
+
+.availableBike{
+    border-left:6px solid #16a34a;
+}
+
+.borrowedBike{
+    border-left:6px solid #dc2626;
+}
+
+.available{
+    color:#16a34a;
+    font-weight:bold;
+    font-size:22px;
+    margin-bottom:15px;
+}
+
+.borrowed{
+    color:#dc2626;
+    font-weight:bold;
+    font-size:22px;
+}
+
+h2{
+    margin-top:0;
+    color:#222;
+}
+
+select,
+input{
+    background:#fafafa;
+    transition:.2s;
+}
+
+select:focus,
+input:focus{
+    outline:none;
+    border-color:#0078d7;
+    box-shadow:0 0 0 3px rgba(0,120,215,.15);
+}
+
+input,
+select{
+    width:95%;
+    padding:12px;
+    margin-top:8px;
+    margin-bottom:10px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:16px;
+}
+
+input[type="time"]{
+    width:100%;
+    min-height:50px;
+    background:#fafafa;
+    box-sizing:border-box;
+}
+
+button{
+    padding:12px 20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+    font-weight:600;
+    letter-spacing:.3px;
+}
+
+.borrowBtn{
+    background:linear-gradient(135deg,#0078d7,#0056b3);
+    color:white;
+    transition:.2s;
+}
+
+.problemBtn{
+    background:#ff9800;
+    color:white;
+    margin-left:10px;
+    transition:.2s;
+}
+
+.returnBtn{
+    background:#d9534f;
+    color:white;
+    transition:.2s;
+}
+
+.borrowBtn:hover,
+.problemBtn:hover,
+.returnBtn:hover{
+    opacity:.9;
+    transform:translateY(-2px);
+}
+
+.problemBtn{
+    background:#ff9800;
+    color:white;
+    margin-left:10px;
+}
+
+.buttonGroup{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+}
+
+.footer{
+    text-align:center;
+    color:#888;
+    margin-top:40px;
+    font-size:14px;
+}
+
+.dashboard{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:15px;
+margin-bottom:20px;
+}
+
+.summaryCard{
+    background:white;
+    border:1px solid #e5e7eb;
+    padding:20px;
+    border-radius:18px;
+    text-align:center;
+    font-weight:bold;
+
+    box-shadow:
+    0 4px 12px rgba(0,0,0,.08);
+
+    transition:.2s;
+}
+
+.summaryCard:hover{
+    transform:translateY(-3px);
+}
+
+.summaryCard span{
+    display:block;
+    font-size:36px;
+    font-weight:700;
+    color:#0078d7;
+    margin:12px 0;
+}
+
+.maintenanceCard span{
+    color:#ff9800;
+}
+
+.borrowedSummary span{
+    color:#dc2626;
+}
+
+.availableSummary span{
+    color:#16a34a;
+}
+
+.maintenanceCard{
+    transition:0.2s;
+}
+
+.maintenanceCard:hover{
+    transform:translateY(-3px);
+    cursor:pointer;
+}
+
+.dashboard a{
+    text-decoration:none;
+    color:inherit;
+}
+
+/* MOBILE RESPONSIVE */
+
+@media (max-width:768px){
+
+#themeBtn{
+    top:5px;
+    right:5px;
+    font-size:28px;
+}
+
+.buttonGroup{
+    flex-direction:column;
+}
+
+.buttonGroup button{
+    width:100%;
+}
+
+.borrowBtn,
+.problemBtn{
+    margin-left:0;
+}
+
+body{
+    padding:10px;
+}
+
+.card{
+    width:100%;
+    box-sizing:border-box;
+}
+
+.summaryCard{
+    padding:12px;
+}
+
+input,
+select{
+    width:100%;
+    box-sizing:border-box;
+}
+
+.header h1{
+    font-size:24px;
+    line-height:1.2;
+}
+
+.header p{
+    font-size:14px;
+}
+
+.dashboard{
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+}
+
+.summaryCard{
+    padding:8px;
+    min-height:100px;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+.summaryCard span{
+    font-size:18px;
+}
+
+.card{
+    padding:15px;
+}
+
+.card h2{
+    font-size:18px;
+}
+
+.available,
+.borrowed{
+    font-size:18px;
+}
+
+input,
+select{
+    width:100%;
+    box-sizing:border-box;
+}
+
+button{
+    width:100%;
+    margin-top:10px;
+}
+
+.problemBtn{
+    margin-left:0;
+}
+
+.footer{
+    font-size:13px;
+}
+
+}
+
+.dark{
+    background:#111827;
+    color:white;
+}
+
+.dark .card,
+.dark .summaryCard{
+    background:#1e293b;
+    color:white;
+    border-color:#334155;
+}
+
+.dark h1,
+.dark h2{
+    color:white;
+}
+
+.dark .header p,
+.dark .footer{
+    color:#cbd5e1;
+}
+
+.dark input,
+.dark select{
+    background:#334155;
+    color:white;
+    border:1px solid #475569;
+}
+
+.dark .availableBike{
+    border-left:6px solid #22c55e;
+}
+
+.dark .borrowedBike{
+    border-left:6px solid #ef4444;
+}
+
+.dark .maintenanceBike{
+    background:#3b2f12;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+
+<h1>🚲 PTC 自転車管理システム</h1>
+
+<button
+id="themeBtn"
+onclick="toggleTheme()">
+🌙
+</button>
+
+<p>Bicycle Reservation & Tracking</p>
+
+</div>
+
+<div class="card">
+
+<div class="dashboard">
+
+<div class="summaryCard">
+🚲<br>
+<span id="totalBikes">0</span><br>
+総台数<br>(Total Bikes)
+</div>
+
+<div class="summaryCard availableSummary">
+✅<br>
+<span id="availableBikes">0</span><br>
+利用可能<br>(Available)
+</div>
+
+<div class="summaryCard borrowedSummary">
+❌<br>
+<span id="borrowedBikes">0</span><br>
+利用中<br>(Borrowed)
+</div>
+
+<a
+href="maintenance.html"
+title="Open Maintenance Dashboard"
+style="text-decoration:none;color:inherit;"
+>
+
+<div class="summaryCard maintenanceCard">
+🔧<br>
+<span id="maintenanceCount">0</span><br>
+修理待ち<br>(Maintenance)
+</div>
+
+</a>
+</div>
+
+</div>
+
+<div style="margin-bottom:20px;">
+    <input
+type="text"
+id="searchBike"
+placeholder="🔍 Search Bicycle..."
+autocomplete="off"
+spellcheck="false"
+autocapitalize="off"
+onkeyup="loadBikes()"
+>
+</div>
+<div id="bikeList">
+Loading...
+</div>
+
+<div
+style="
+text-align:center;
+margin-top:20px;
+display:flex;
+justify-content:center;
+gap:15px;
+flex-wrap:wrap;
+">
+
+<a href="history.html">
+<button class="borrowBtn">
+📋 利用履歴
+(Usage History)
+</button>
+</a>
+
+</div>
+
+
+<div class="footer">
+    <p>PTC Bicycle Management System</p>
+    <p>Developed by : 第39短大生-ファリド</p>
+</div>
+
+<script type="module">
+
+import {
+    auth,
+    db,
+    collection,
+    getDocs,
+    setDoc,
+    getDoc,
+    doc,
+    updateDoc,
+    addDoc,
+    onSnapshot
+} from "./js/firebase.js";
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+let isAdmin = false;
+
+onAuthStateChanged(auth, (user) => {
+
+    isAdmin = !!user;
+
+});
+
+// QR URL parameter
+const params =
+new URLSearchParams(
+window.location.search
+);
+
+const bikeParam =
+params.get("bike");
+
+window.addEventListener("DOMContentLoaded", () => {
+    if (bikeParam) {
+        document.getElementById("homeFloating").style.display = "block";
+    }
+});
+
+window.toggleTheme = function(){
+document.body.classList.toggle("dark");
+
+const btn =
+document.getElementById("themeBtn");
+
+if(document.body.classList.contains("dark")){
+
+    btn.innerHTML = "☀️";
+
+    localStorage.setItem(
+        "theme",
+        "dark"
+    );
+
+}else{
+
+    btn.innerHTML = "🌙";
+
+    localStorage.setItem(
+        "theme",
+        "light"
+    );
+
+}
+
+}
+
+function applyTheme(){
+
+const savedTheme =
+localStorage.getItem("theme");
+
+const btn =
+document.getElementById("themeBtn");
+
+if(savedTheme === "dark"){
+
+    document.body.classList.add("dark");
+    btn.innerHTML = "☀️";
+
+}else{
+
+    document.body.classList.remove("dark");
+    btn.innerHTML = "🌙";
+
+}
+
+}
+
+function isOverdue(eta){
+
+if(!eta || eta === "-"){
+    return "";
+}
+
+const now = new Date();
+
+const currentMinutes =
+(now.getHours() * 60)
++
+now.getMinutes();
+
+const parts = eta.split(":");
+
+const etaMinutes =
+(parseInt(parts[0]) * 60)
++
+parseInt(parts[1]);
+
+if(currentMinutes > etaMinutes){
+
+return `
+<div style="
+background:#fee2e2;
+color:#b91c1c;
+padding:10px;
+border-radius:10px;
+font-weight:bold;
+margin:10px 0;
+">
+⚠ 返却遅延 (Overdue)
+</div>
+`;
+
+}
+
+return "";
+
+}
+
+async function loadBikes(){
+
+let keyword =
+document.getElementById("searchBike")?.value
+.toLowerCase() || "";
+
+if(bikeParam){
+
+keyword =
+bikeParam
+.toLowerCase()
+.replace(/-/g,"");
+
+document.getElementById(
+"searchBike"
+).value = bikeParam;
+
+}
+console.log("SEARCH =", keyword);
+
+const snapshot =
+await getDocs(collection(db,"Bikes"));
+
+let html = "";
+
+let totalBikes = 0;
+let availableBikes = 0;
+let borrowedBikes = 0;
+let maintenanceCount = 0;
+
+const maintenanceSnapshot =
+await getDocs(collection(db,"Maintenance"));
+
+const maintenanceMap = {};
+
+maintenanceSnapshot.forEach((item)=>{
+
+const m=item.data();
+
+if(
+m.status==="修理待ち"||
+m.status==="Pending"
+){
+
+maintenanceMap[m.bike]=m;
+maintenanceCount++;
+
+}
+
+});
+
+
+snapshot.forEach((item)=>{
+
+    totalBikes++;
+
+    const bike = item.data();
+    const id = item.id;
+    const bikeName =
+bike.name.toLowerCase().replace(/-/g,"");
+
+const bikeId =
+id.toLowerCase().replace(/-/g,"");
+
+const searchText =
+keyword.replace(/-/g,"");
+
+console.log(
+"Bike:",
+bike.name,
+"| ID:",
+id,
+"| Search:",
+searchText
+);
+
+if(
+!bikeName.includes(searchText) &&
+!bikeId.includes(searchText)
+){
+    console.log("SKIP", bike.name);
+    return;
+}
+
+console.log("SHOW", bike.name);
+
+    if(bike.status === "maintenance"){
+const maintenance =
+maintenanceMap[bike.name];
+
+const problem =
+maintenance?.problem || "-";
+
+const reporter =
+maintenance?.reportedBy || "-";
+
+const reportTime =
+maintenance?.createdAt
+? new Date(maintenance.createdAt).toLocaleString("ja-JP")
+: "-";
+
+html += `
+<div class="card maintenanceBike">
+
+<h2>🚲 ${bike.name}</h2>
+
+<p style="
+background:#fff3cd;
+color:#856404;
+padding:12px;
+border-radius:10px;
+font-weight:bold;
+font-size:20px;
+display:inline-block;
+">
+🔧 修理中 (Under Maintenance)
+</p>
+
+<p><b>🔧 Problem :</b> ${problem}</p>
+
+<p><b>👤 Reported By :</b> ${reporter}</p>
+
+<p><b>🕒 Reported At :</b> ${reportTime}</p>
+
+<p>
+<b>📌 Status :</b>
+<span style="color:#d97706;font-weight:bold;">
+🟠 Waiting for Repair
+</span>
+</p>
+
+</div>
+`;
+
+}
+else if(bike.status === "available"){
+
+    availableBikes++;
+
+    html += `
+
+        <div class="card availableBike">
+
+        <h2>🚲 ${bike.name}</h2>
+
+        <p class="available">
+        利用可能 (Available) ✅
+        </p>
+
+<select
+id="name_${id}"
+required
+onchange="checkUserPassword('${id}')">
+
+<option value="">
+▼ 利用者名 (User Name) を選択してください
+</option>
+
+<option value="ファリド">01 ファリド</option>
+<option value="ハムザ">02 ハムザ</option>
+<option value="タン">03 タン</option>
+<option value="アリー">04 アリー</option>
+<option value="ライ">05 ライ</option>
+<option value="ジャフィック">06 ジャフィック</option>
+<option value="アイザド">07 アイザド</option>
+<option value="コウ">08 コウ</option>
+<option value="ミフタ">09 ミフタ</option>
+<option value="アディ">10 アディ</option>
+<option value="バス">11 バス</option>
+<option value="ルクマン">12 ルクマン</option>
+<option value="ジュリアン">13 ジュリアン</option>
+<option value="サンディ">14 サンディ</option>
+<option value="ヌン">15 ヌン</option>
+<option value="イルファン">16 イルファン</option>
+<option value="アンドリ">17 アンドリ</option>
+<option value="ターキ">18 ターキ</option>
+<option value="プジ">19 プジ</option>
+<option value="チョウ">20 チョウ</option>
+<option value="藤田">21 藤田</option>
+<option value="浜本">22 浜本</option>
+<option value="安里">23 安里</option>
+<option value="小倉">24 小倉</option>
+<option value="こうせいいいん">98 こうせいいいん</option>
+<option value="Admin">99 Admin</option>
+</select>
+
+        <label style="display:block;margin-top:10px;margin-bottom:5px;">
+        🕒 返却予定時刻 (Estimated Return Time)
+        </label>
+<input
+type="time"
+id="est_${id}"
+required
+/>
+
+<label style="display:block;margin-top:10px;">
+🔒 Password
+</label>
+
+<input
+type="password"
+id="pass_${id}"
+placeholder="First time: Create Password / Next time: Enter Password"
+autocomplete="new-password"
+required
+/>
+
+<div
+id="passInfo_${id}"
+style="
+font-size:13px;
+margin-top:5px;
+font-weight:bold;
+">
+</div>
+
+<div class="buttonGroup">
+
+<button
+class="borrowBtn"
+onclick="pinjam('${id}')">
+利用開始 (Borrow)
+</button>
+
+<button
+class="problemBtn"
+onclick="reportProblem('${id}','${bike.name}')">
+🔧 不具合報告
+(Report Problem)
+</button>
+
+</div>
+
+
+        </div>
+
+        `;
+
+	}else{
+
+        borrowedBikes++;
+
+        html += `
+	<div class="card borrowedBike">
+
+	<h2>🚲 ${bike.name}</h2>
+
+        <p class="borrowed">
+        利用中 (In Use) ❌
+        </p>
+
+        <p>
+        <b>利用者 (User):</b>
+        ${bike.borrowedBy}
+        </p>
+
+        <p>
+        <b>利用開始 (Start Time):</b>
+        ${bike.startTime !== "-" ? new Date(bike.startTime).toLocaleString('ja-JP') : "-"}
+        </p>
+
+        <p>
+        <b>返却予定 (Estimated Return):</b>
+        ${bike.estimatedEndTime}
+        </p>
+
+        ${isOverdue(bike.estimatedEndTime)}
+
+        <p>
+        <b>実際返却 (Actual Return):</b>
+        ${bike.actualEndTime !== "-" ? new Date(bike.actualEndTime).toLocaleString('ja-JP') : "-"}
+        </p>
+
+        <button
+        class="returnBtn"
+        onclick="kembalikan('${id}')">
+
+        返却する (Return)
+
+        </button>
+
+        </div>
+
+        `;
+
+    }
+
+});
+
+document.getElementById("totalBikes").innerText =
+totalBikes;
+
+document.getElementById("availableBikes").innerText =
+availableBikes;
+
+document.getElementById("borrowedBikes").innerText =
+borrowedBikes;
+
+
+document.getElementById("maintenanceCount").innerText =
+maintenanceCount;
+
+document.getElementById("bikeList").innerHTML =
+html;
+
+}
+
+window.loadBikes = loadBikes;
+
+window.checkUserPassword = async function(id){
+
+    const nama =
+    document.getElementById(`name_${id}`).value;
+
+    if(!nama) return;
+
+    const userRef = doc(db,"Users",nama);
+    const userSnap = await getDoc(userRef);
+
+    const passInput =
+    document.getElementById(`pass_${id}`);
+
+    const info =
+    document.getElementById(`passInfo_${id}`);
+
+    if(userSnap.exists()){
+
+        passInput.placeholder =
+        "Enter Your Password";
+
+        info.innerHTML =
+        "🔵 Password already registered.";
+
+        info.style.color="#2563eb";
+
+    }else{
+
+        passInput.placeholder =
+        "Create New Password";
+
+        info.innerHTML =
+        "🟢 First time user. Please create your password.";
+
+        info.style.color="#16a34a";
+
+    }
+
+}
+
+window.pinjam = async function(id){
+
+const nama =
+document.getElementById(`name_${id}`).value;
+
+const estimasi =
+document.getElementById(`est_${id}`).value;
+const password =
+document.getElementById(`pass_${id}`).value;
+
+if(!nama){
+
+alert(
+"利用者を選択してください (Please select a user)"
+);
+
+return;
+
+}
+
+if(!estimasi){
+
+alert(
+"返却予定時刻を選択してください (Please select an estimated return time)"
+);
+
+return;
+
+}
+
+if(!password){
+
+alert(
+"パスワードを入力してください (Please enter password)"
+);
+
+return;
+
+}
+
+const userRef = doc(db,"Users",nama);
+const userSnap = await getDoc(userRef);
+
+
+if(!userSnap.exists()){
+
+    alert(
+        "初回利用です。\n入力したパスワードを登録します。\n\n(First time use. Your password will be saved.)"
+    );
+
+await setDoc(userRef,{
+    name: nama,
+    password: password,
+    createdAt: new Date().toISOString()
+});
+
+}
+else{
+
+    if(password !== userSnap.data().password){
+
+    alert(
+`パスワードが違います。
+
+パスワードを忘れた場合は
+厚生委員会へ連絡してください。
+
+(Wrong Password)
+
+If you forgot your password,
+please contact the Kosei Committee.)`
+    );
+
+    return;
+
+}
+
+}
+const sekarang =
+new Date().toISOString();
+
+await updateDoc(
+doc(db,"Bikes",id),
+{
+status:"borrowed",
+borrowedBy:nama,
+startTime:sekarang,
+estimatedEndTime:estimasi,
+actualEndTime:"-"
+}
+);
+
+alert(
+"利用開始しました (Borrow Successful)"
+);
+
+await loadBikes();
+
+}
+
+window.kembalikan = async function(id){
+
+const inputPassword = prompt(
+"パスワードを入力してください\n(Enter Password)"
+);
+
+if(!inputPassword){
+    return;
+}
+
+if(!confirm("この自転車を返却しますか？")){
+    return;
+}
+
+
+const sekarang =
+new Date().toISOString();
+
+const snapshot =
+await getDocs(collection(db,"Bikes"));
+
+let currentBike = null;
+
+snapshot.forEach((item)=>{
+
+    if(item.id === id){
+        currentBike = item.data();
+    }
+
+});
+
+
+const userRef = doc(db,"Users",currentBike.borrowedBy);
+const userSnap = await getDoc(userRef);
+
+if(!userSnap.exists()){
+
+    alert("User data not found");
+    return;
+
+}
+
+if(inputPassword !== userSnap.data().password){
+
+    if(!isAdmin){
+
+        alert(
+`パスワードが違います。
+
+パスワードを忘れた場合は
+厚生委員会へ連絡してください。
+
+(Wrong Password)
+
+If you forgot your password,
+please contact the Kosei Committee.)`
+        );
+
+        return;
+
+    }
+
+}
+
+await addDoc(
+collection(db,"History"),
+{
+    bike: currentBike.name,
+    borrower: currentBike.borrowedBy,
+    borrowedAt: currentBike.startTime,
+    estimatedReturn: currentBike.estimatedEndTime,
+    returnedAt: sekarang,
+    createdAt: Date.now()
+}
+);
+
+await updateDoc(
+doc(db,"Bikes",id),
+{
+status:"available",
+borrowedBy:"-",
+startTime:"-",
+estimatedEndTime:"-",
+actualEndTime:sekarang,
+
+lastUser: currentBike.borrowedBy,
+lastReturned: sekarang
+}
+);
+
+alert(
+"返却しました (Returned)"
+);
+
+await loadBikes();
+
+}
+
+window.reportProblem = async function(bikeId,bikeName){
+
+const reporter =
+document.getElementById(`name_${bikeId}`).value;
+
+if(!reporter){
+
+alert(
+"利用者を選択してください (Please select a user)"
+);
+
+return;
+
+}
+
+const problem =
+prompt(
+"不具合内容 (Problem)"
+);
+
+if(!problem) return;
+
+await addDoc(
+collection(db,"Maintenance"),
+{
+bike: bikeName,
+reportedBy: reporter,
+problem: problem,
+status:"修理待ち",
+repairAction:"",
+completedAt:"",
+createdAt: Date.now()
+}
+);
+await updateDoc(
+doc(db,"Bikes",bikeId),
+{
+status:"maintenance",
+}
+);
+
+alert(
+"不具合を登録しました (Problem Reported)"
+);
+await loadBikes();
+
+}
+
+applyTheme();
+
+if(bikeParam){
+
+document.title =
+bikeParam + " - PTC Bicycle";
+
+}
+document.getElementById("searchBike").value = "";
+loadBikes();
+
+onSnapshot(
+collection(db,"Bikes"),
+()=>{
+    loadBikes();
+}
+);
+
+onSnapshot(
+collection(db,"Maintenance"),
+()=>{
+    loadBikes();
+}
+);
+
+</script>
+
+<!-- Floating Home Button -->
+<a href="index.html" id="homeFloating"
+style="
+display:none;
+position:fixed;
+bottom:20px;
+right:20px;
+background:#0078d7;
+color:white;
+text-decoration:none;
+padding:14px 16px;
+border-radius:50%;
+font-size:22px;
+box-shadow:0 4px 10px rgba(0,0,0,.25);
+z-index:9999;">
+🏠
+</a>
+
+</body>
+</html>

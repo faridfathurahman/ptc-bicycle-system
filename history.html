@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<title>PTC Bicycle Usage History</title>
+
+<style>
+
+.actionButtons{
+    margin-top:15px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.actionButtons .backBtn{
+    margin-bottom:0;
+}
+.actionButtons .backBtn{
+    padding:8px 12px;
+    font-size:13px;
+    margin-top:0 !important;
+}
+@media(max-width:768px){
+
+    .actionButtons{
+        flex-direction:column;
+        gap:8px;
+    }
+
+    .actionButtons .backBtn{
+        width:100%;
+        box-sizing:border-box;
+        text-align:center;
+        font-size:13px;
+        padding:8px 10px;
+        margin-top:0 !important;
+        margin-bottom:0;
+    }
+
+}
+body{
+    font-family:Arial,sans-serif;
+    background:#f5f5f5;
+    padding:10px;
+}
+
+.header{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.header h1{
+    font-size:32px;
+    margin:0;
+    line-height:1.2;
+}
+
+.card{
+    background:white;
+    padding:10px;
+    border-radius:15px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+    margin-bottom:15px;
+}
+
+.table-container{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+}
+
+th{
+    background:#0078d7;
+    color:white;
+    padding:8px;
+}
+
+td{
+    padding:8px;
+    border-bottom:1px solid #ddd;
+    word-break:break-word;
+}
+
+td:first-child{
+    white-space:nowrap;
+}
+
+.backBtn{
+    display:inline-block;
+    margin-bottom:20px;
+    padding:10px 15px;
+    background:#0078d7;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+}
+
+button{
+    padding:10px 15px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+button:hover{
+    opacity:0.85;
+}
+
+@media(max-width:768px){
+
+    .header h1{
+        font-size:18px;
+    }
+
+    .backBtn{
+        padding:8px 12px;
+        font-size:14px;
+    }
+
+    #monthFilter{
+        min-width:140px !important;
+        font-size:14px;
+    }
+
+}
+#bikeChart{
+    max-height:300px;
+}
+
+@media(max-width:768px){
+
+    #bikeChart{
+        max-height:220px;
+    }
+
+}
+
+#pdfContent table{
+    font-size:12px;
+}
+
+#pdfContent h2{
+    font-size:22px;
+}
+
+#pdfContent p{
+    font-size:15px;
+}
+
+</style>
+</head>
+
+<body>
+
+<a href="index.html" class="backBtn">
+← Back
+</a>
+
+<div class="header">
+    <h1>📋 PTC Bicycle Usage History</h1>
+</div>
+
+<div style="
+display:flex;
+gap:10px;
+align-items:center;
+margin-bottom:20px;
+flex-wrap:wrap;
+">
+
+<button
+id="allBtn"
+onclick="setFilter('all')"
+style="
+height:40px;
+padding:0 16px;
+border-radius:10px;
+background:#0078d7;
+color:white;
+">
+すべて
+</button>
+
+<button
+id="weekBtn"
+onclick="setFilter('week')"
+style="
+height:40px;
+padding:0 16px;
+border-radius:10px;
+background:#ccc;
+color:black;
+">
+今週
+</button>
+
+<select
+id="monthFilter"
+onchange="setMonthFilter()"
+style="
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+width:auto;
+min-width:180px;
+margin:0;
+">
+    <option value="">すべての月</option>
+</select>
+<select
+id="weekOfMonthFilter"
+onchange="setWeekFilter()"
+style="
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+min-width:140px;
+">
+
+<option value="">すべての週</option>
+
+<option value="1">第1週</option>
+<option value="2">第2週</option>
+<option value="3">第3週</option>
+<option value="4">第4週</option>
+<option value="5">第5週</option>
+<option value="6">第6週</option>
+
+</select>
+
+</div>
+
+<div
+id="pdfContent"
+style="
+margin-top:20px;
+max-width:1000px;
+margin-left:auto;
+margin-right:auto;
+background:white;
+padding:20px;
+">
+<div class="card">
+<h2>📊 利用統計 (Usage Statistics)</h2>
+
+<div id="stats">
+読み込み中... (Loading...)
+</div>
+<canvas id="bikeChart"></canvas>
+
+</div>
+
+<div class="card">
+
+<div class="table-container">
+
+<table>
+
+<thead>
+<tr>
+<th>自転車<br>(Bike)</th>
+<th>利用者<br>(User)</th>
+<th>利用開始<br>(Borrowed)</th>
+<th>返却予定<br>(ETA)</th>
+<th>返却日時<br>(Returned)</th>
+</tr>
+</thead>
+
+<tbody id="historyTable">
+<tr>
+<td colspan="5">
+読み込み中... (Loading...)
+</td>
+</tr>
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="actionButtons">
+
+<button
+id="exportExcelBtn"
+class="backBtn"
+style="background:#28a745;">
+📄 Export Excel
+</button>
+
+<button
+id="exportPdfBtn"
+class="backBtn"
+style="background:#ff9800;">
+📄 Export PDF
+</button>
+
+<button
+id="clearHistoryBtn"
+class="backBtn"
+style="background:#d9534f;">
+🗑 Clear History (Admin)
+</button>
+
+</div>
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+getDocs,
+deleteDoc,
+doc,
+query,
+orderBy
+}
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyBAt7R0Cg-IpBPawPMx5ZxA3uHRAc7abx0",
+authDomain: "bike-rent-cc4d7.firebaseapp.com",
+projectId: "bike-rent-cc4d7",
+storageBucket: "bike-rent-cc4d7.firebasestorage.app",
+messagingSenderId: "223558810676",
+appId: "1:223558810676:web:b17f62a9ca76d4d9f91e61"
+
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let bikeChart = null;
+let selectedMonth = "";
+let selectedWeek = "";
+let currentFilter = "all";
+
+window.setFilter = function(filter){
+
+    currentFilter = filter;
+
+selectedMonth = "";
+selectedWeek = "";
+
+document.getElementById("monthFilter").value = "";
+document.getElementById("weekOfMonthFilter").value = "";
+
+    document.getElementById("allBtn").style.background =
+        filter === "all" ? "#0078d7" : "#ccc";
+
+    document.getElementById("allBtn").style.color =
+        filter === "all" ? "white" : "black";
+
+    document.getElementById("weekBtn").style.background =
+        filter === "week" ? "#28a745" : "#ccc";
+
+    document.getElementById("weekBtn").style.color =
+        filter === "week" ? "white" : "black";
+
+    loadHistory();
+
+};
+
+window.setMonthFilter = function(){
+
+    selectedMonth =
+document.getElementById("monthFilter").value;
+
+selectedWeek = "";
+document.getElementById("weekOfMonthFilter").value = "";
+
+currentFilter = "all";
+
+    document.getElementById("allBtn").style.background = "#0078d7";
+    document.getElementById("allBtn").style.color = "white";
+
+    document.getElementById("weekBtn").style.background = "#ccc";
+    document.getElementById("weekBtn").style.color = "black";
+
+    loadHistory();
+
+};
+window.setWeekFilter = function(){
+
+    selectedWeek =
+    document.getElementById("weekOfMonthFilter").value;
+
+    loadHistory();
+
+};
+
+async function loadHistory(){
+
+const q = query(
+    collection(db,"History"),
+    orderBy("createdAt","desc")
+);
+
+const snapshot =
+await getDocs(q);
+
+// TAMBAHKAN DISINI
+
+const monthMap = new Map();
+
+snapshot.forEach((item)=>{
+
+    const h = item.data();
+
+    if(h.createdAt){
+
+        const date =
+        new Date(h.createdAt);
+
+        const value =
+        date.getFullYear() + "-" +
+        String(date.getMonth()+1)
+        .padStart(2,"0");
+
+        const label =
+        date.toLocaleString("ja-JP",{
+            month:"long",
+            year:"numeric"
+        });
+
+        monthMap.set(value,label);
+
+    }
+
+});
+
+const select =
+document.getElementById("monthFilter");
+
+select.innerHTML =
+'<option value="">すべての月</option>';
+
+[...monthMap.entries()]
+.sort((a,b)=> b[0].localeCompare(a[0]))
+.forEach(([value,label])=>{
+
+    select.innerHTML += `
+    <option
+    value="${value}"
+    ${value === selectedMonth ? "selected" : ""}
+    >
+    ${label}
+    </option>`;
+
+});
+
+// lanjut kode lama
+let html = "";
+const bikeCount = {};
+let totalUsage = 0;
+
+snapshot.forEach((item)=>{
+
+    const h = item.data();
+
+    if(h.createdAt){
+
+        const recordDate =
+        new Date(h.createdAt);
+
+        if(selectedMonth){
+
+            const recordMonth =
+            recordDate.getFullYear() + "-" +
+            String(recordDate.getMonth()+1)
+            .padStart(2,"0");
+
+            if(recordMonth !== selectedMonth){
+                return;
+            }
+
+        }
+if(selectedWeek){
+
+    const firstDay =
+    new Date(
+        recordDate.getFullYear(),
+        recordDate.getMonth(),
+        1
+    );
+
+    const offset =
+    (firstDay.getDay() + 6) % 7;
+
+    const weekNumber =
+    Math.ceil(
+        (recordDate.getDate() + offset)
+        / 7
+    );
+
+    if(weekNumber != selectedWeek){
+        return;
+    }
+
+}
+const now = new Date();
+
+if(currentFilter === "week"){
+
+    const diff =
+    (now - recordDate) /
+    (1000 * 60 * 60 * 24);
+
+    if(diff > 7){
+        return;
+    }
+
+}
+
+    } // <-- tambahkan ini
+
+    totalUsage++;
+
+    
+
+if(!bikeCount[h.bike]){
+    bikeCount[h.bike] = 0;
+}
+
+bikeCount[h.bike]++;
+
+html += `
+<tr>
+<td>${h.bike}</td>
+<td>${h.borrower}</td>
+<td>${new Date(h.borrowedAt).toLocaleString('ja-JP')}</td>
+<td>${h.estimatedReturn}</td>
+<td>${new Date(h.returnedAt).toLocaleString('ja-JP')}</td>
+</tr>
+`;
+
+});
+
+if(html === ""){
+
+    html = `
+    <tr>
+        <td colspan="5">
+            履歴がありません (No History Found)
+        </td>
+    </tr>
+    `;
+
+}
+
+const sortedBikes = Object.entries(bikeCount)
+    .sort((a, b) => b[1] - a[1]);
+const labels = sortedBikes.map(item => item[0]);
+const values = sortedBikes.map(item => item[1]);
+
+let topBike = "-";
+let topCount = 0;
+
+if(sortedBikes.length > 0){
+    topBike = sortedBikes[0][0];
+    topCount = sortedBikes[0][1];
+}
+if(totalUsage === 0){
+
+    topBike = "-";
+    topCount = 0;
+
+}
+document.getElementById("stats").innerHTML = `
+<p>🚲 <b>総利用回数 (Total Usage):</b> ${totalUsage}</p>
+<p>🏆 <b>最多利用自転車 (Most Used Bike):</b> ${topBike}</p>
+<p>📈 <b>利用回数 (Usage Count):</b> ${topCount} 回</p>
+`;
+const chartCanvas =
+document.getElementById("bikeChart");
+
+if(bikeChart){
+    bikeChart.destroy();
+}
+
+if(values.length > 0){
+
+    chartCanvas.style.display = "block";
+
+    bikeChart = new Chart(chartCanvas,{
+        type:"bar",
+        data:{
+            labels:labels,
+            datasets:[{
+                label:"利用回数 (Usage Count)",
+                data:values,
+                borderWidth:1
+            }]
+        },
+        options:{
+            responsive:true,
+            scales:{
+                y:{
+                    beginAtZero:true
+                }
+            }
+        }
+    });
+
+}else{
+
+    chartCanvas.style.display = "none";
+
+}
+
+document.getElementById("historyTable").innerHTML = html;
+
+}
+
+document
+.getElementById("clearHistoryBtn")
+.addEventListener("click", async ()=>{
+
+const password = prompt(
+"Admin Password:"
+);
+
+if(password !== "PTC2026@"){
+    alert("Wrong password!");
+    return;
+}
+
+if(!confirm("Delete all history?")){
+    return;
+}
+
+const snapshot =
+await getDocs(collection(db,"History"));
+
+for(const item of snapshot.docs){
+
+    await deleteDoc(
+        doc(db,"History",item.id)
+    );
+
+}
+
+alert("History deleted!");
+
+location.reload();
+
+});
+
+document
+.getElementById("exportExcelBtn")
+.addEventListener("click", async ()=>{
+
+const snapshot =
+await getDocs(collection(db,"History"));
+
+const data = [];
+
+snapshot.forEach((item)=>{
+
+    const h = item.data();
+
+    data.push({
+        Bike: h.bike,
+        User: h.borrower,
+        Borrowed: h.borrowedAt,
+        ETA: h.estimatedReturn,
+        Returned: h.returnedAt
+    });
+
+});
+
+const worksheet =
+XLSX.utils.json_to_sheet(data);
+
+const workbook =
+XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(
+    workbook,
+    worksheet,
+    "History"
+);
+
+XLSX.writeFile(
+    workbook,
+    "PTC_Bicycle_History.xlsx"
+);
+
+});
+
+document
+.getElementById("exportPdfBtn")
+.addEventListener("click", async ()=>{
+
+const { jsPDF } = window.jspdf;
+
+const pdf = new jsPDF(
+    "p",
+    "mm",
+    "a4"
+);
+
+const element =
+document.getElementById("pdfContent");
+
+const canvas =
+await html2canvas(element,{
+    scale:4,
+    useCORS:true,
+    backgroundColor:"#ffffff",
+    scrollY:0,
+    windowWidth:element.scrollWidth,
+    windowHeight:element.scrollHeight
+});
+
+const imgData =
+canvas.toDataURL("image/png");
+
+const imgWidth = 180;
+
+const pageHeight =
+pdf.internal.pageSize.getHeight() - 20;
+
+const imgHeight =
+(canvas.height * imgWidth)
+/ canvas.width;
+
+let heightLeft =
+imgHeight;
+
+let position = 30;
+
+const reportDate =
+new Date().toLocaleString(
+"ja-JP",
+{
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit"
+}
+);
+
+const pageWidth =
+pdf.internal.pageSize.getWidth();
+
+const pdfHeight =
+pdf.internal.pageSize.getHeight();
+
+pdf.setFontSize(22);
+
+pdf.text(
+    "PTC Bicycle Usage History",
+    pageWidth / 2,
+    15,
+    { align:"center" }
+);
+pdf.line(
+    15,
+    20,
+    pageWidth - 15,
+    20
+);
+
+pdf.setFontSize(10);
+
+
+pdf.addImage(
+    imgData,
+    "PNG",
+    15,
+    position,
+    imgWidth,
+    imgHeight
+);
+
+heightLeft -= pageHeight;
+
+while(heightLeft > 0){
+
+position =
+heightLeft - imgHeight;
+
+    pdf.addPage();
+
+    pdf.addImage(
+        imgData,
+        "PNG",
+        10,
+        position,
+        imgWidth,
+        imgHeight
+    );
+
+    heightLeft -= pageHeight;
+
+}
+
+pdf.save(
+    "PTC_Bicycle_History.pdf"
+);
+
+});
+loadHistory();
+
+</script>
+
+</body>
+</html>
