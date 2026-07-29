@@ -1,30 +1,19 @@
 exports.handler = async (event) => {
-  const CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+  // Hanya menerima POST
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 200,
+      body: "OK"
+    };
+  }
 
   const body = JSON.parse(event.body);
 
-  const userId = body.userId;
-  const message = body.message;
+  console.log("LINE Webhook:", JSON.stringify(body));
 
-  const response = await fetch("https://api.line.me/v2/bot/message/push", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CHANNEL_ACCESS_TOKEN}`
-    },
-    body: JSON.stringify({
-      to: userId,
-      messages: [
-        {
-          type: "text",
-          text: message
-        }
-      ]
-    })
-  });
-
+  // Balas sukses agar Verify berhasil
   return {
-    statusCode: response.status,
-    body: await response.text()
+    statusCode: 200,
+    body: "OK"
   };
 };
