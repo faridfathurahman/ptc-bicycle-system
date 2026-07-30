@@ -971,8 +971,7 @@ async function checkOverdueNotification(){
                     },
                     body:JSON.stringify({
                         message:
-`🚨 Bicycle Overdue
-🚨 自転車返却遅延
+`🚨 自転車返却遅延 / Bicycle Overdue
 
 Bike : ${bike.name}
 User : ${bike.borrowedBy}
@@ -1151,8 +1150,7 @@ await fetch("/.netlify/functions/send-line",{
     },
     body:JSON.stringify({
         message:
-`🚲 Bicycle Borrowed
-🚲 自転車貸出
+`🚲 自転車貸出 / Bicycle Borrowed
 
 Bike : ${bike.name}
 User : ${nama}
@@ -1273,8 +1271,7 @@ await fetch("/.netlify/functions/send-line",{
     },
     body:JSON.stringify({
            message:
-`✅ Bicycle Returned
-✅ 自転車返却
+`✅ 自転車返却 / Bicycle Returned
 
 Bike : ${currentBike.name}
 User : ${currentBike.borrowedBy}
