@@ -933,28 +933,29 @@ async function checkOverdueNotification(){
     const snapshot = await getDocs(collection(db,"Bikes"));
 
     const now = new Date();
-    const currentMinutes =
-        now.getHours()*60 + now.getMinutes();
+    const currentMinutes = now.getHours()*60 + now.getMinutes();
 
-    snapshot.forEach(async(item)=>{
+    for (const item of snapshot.docs){
 
         const bike = item.data();
 
-        if(bike.status !== "borrowed") return;
+        if(bike.status !== "borrowed") continue;
 
-        if(!bike.estimatedEndTime || bike.estimatedEndTime=="-") return;
+        if(!bike.estimatedEndTime || bike.estimatedEndTime=="-") continue;
 
-        if(bike.overdueNotified) return;
+        if(bike.overdueNotified) continue;
 
         const parts = bike.estimatedEndTime.split(":");
 
         const etaMinutes =
-            parseInt(parts[0])*60 +
+            parseInt(parts[0]) * 60 +
             parseInt(parts[1]);
 
         if(currentMinutes >= etaMinutes){
 
-            await fetch("/.netlify/functions/send-line",{
+            console.log("OVERDUE:", bike.name);
+
+            const res = await fetch("/.netlify/functions/send-line",{
                 method:"POST",
                 headers:{
                     "Content-Type":"application/json"
@@ -962,7 +963,7 @@ async function checkOverdueNotification(){
                 body:JSON.stringify({
                     message:
 `🚨 Bicycle Overdue
-🚨 返却遅延
+🚨 自転車返却遅延
 
 Bike : ${bike.name}
 User : ${bike.borrowedBy}
@@ -972,13 +973,15 @@ Status:
                 })
             });
 
+            console.log(await res.text());
+
             await updateDoc(doc(db,"Bikes",item.id),{
                 overdueNotified:true
             });
 
         }
 
-    });
+    }
 
 }
 
@@ -1354,20 +1357,25 @@ bikeParam + " - PTC Bicycle";
 
 }
 document.getElementById("searchBike").value = "";
-loadBikes();
+
+loadBikes().then(()=>{
+    checkOverdueNotification();
+});
 
 onSnapshot(
-collection(db,"Bikes"),
-()=>{
-    loadBikes();
-}
+    collection(db,"Bikes"),
+    async ()=>{
+        await loadBikes();
+        await checkOverdueNotification();
+    }
 );
 
 onSnapshot(
-collection(db,"Maintenance"),
-()=>{
-    loadBikes();
-}
+    collection(db,"Maintenance"),
+    async ()=>{
+        await loadBikes();
+        await checkOverdueNotification();
+    }
 );
 
 </script>
