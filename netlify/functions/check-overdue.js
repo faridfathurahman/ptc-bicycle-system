@@ -19,13 +19,21 @@ exports.handler = async () => {
     const snapshot = await db.collection("Bikes").get();
 
     const now = new Date();
+
+console.log("Server Time:", now.toString());
+console.log("ISO:", now.toISOString());
     const currentMinutes =
       now.getHours() * 60 +
       now.getMinutes();
-
+console.log("Current Time:", now.getHours() + ":" + now.getMinutes());
     for (const doc of snapshot.docs) {
 
       const bike = doc.data();
+console.log("==========");
+console.log("Bike:", bike.name);
+console.log("Status:", bike.status);
+console.log("ETA:", bike.estimatedEndTime);
+console.log("Notified:", bike.overdueNotified);
 
       if (bike.status !== "borrowed") continue;
 
@@ -38,10 +46,12 @@ exports.handler = async () => {
       const etaMinutes =
         parseInt(parts[0]) * 60 +
         parseInt(parts[1]);
+      console.log("Current Minutes:", currentMinutes);
+console.log("ETA Minutes:", etaMinutes);
 
       if (currentMinutes >= etaMinutes) {
 
-        console.log(`${bike.name} is overdue`);
+        console.log("SEND LINE:", bike.name);
 
      await doc.ref.update({
   overdueNotified: true
