@@ -925,6 +925,62 @@ html;
 }
 
 window.loadBikes = loadBikes;
+	// ===============================
+// Check Overdue Notification
+// ===============================
+async function checkOverdueNotification(){
+
+    const snapshot = await getDocs(collection(db,"Bikes"));
+
+    const now = new Date();
+    const currentMinutes =
+        now.getHours()*60 + now.getMinutes();
+
+    snapshot.forEach(async(item)=>{
+
+        const bike = item.data();
+
+        if(bike.status !== "borrowed") return;
+
+        if(!bike.estimatedEndTime || bike.estimatedEndTime=="-") return;
+
+        if(bike.overdueNotified) return;
+
+        const parts = bike.estimatedEndTime.split(":");
+
+        const etaMinutes =
+            parseInt(parts[0])*60 +
+            parseInt(parts[1]);
+
+        if(currentMinutes >= etaMinutes){
+
+            await fetch("/.netlify/functions/send-line",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    message:
+`🚨 Bicycle Overdue
+🚨 返却遅延
+
+Bike : ${bike.name}
+User : ${bike.borrowedBy}
+
+Status:
+🔴 Overdue / 返却遅延`
+                })
+            });
+
+            await updateDoc(doc(db,"Bikes",item.id),{
+                overdueNotified:true
+            });
+
+        }
+
+    });
+
+}
 
 window.checkUserPassword = async function(id){
 
@@ -1054,7 +1110,8 @@ status:"borrowed",
 borrowedBy:nama,
 startTime:sekarang,
 estimatedEndTime:estimasi,
-actualEndTime:"-"
+actualEndTime:"-",
+overdueNotified:false
 }
 );
 
@@ -1088,6 +1145,7 @@ Status:
 });
 	
 await loadBikes();
+await checkOverdueNotification();
 
 }
 
@@ -1175,6 +1233,7 @@ borrowedBy:"-",
 startTime:"-",
 estimatedEndTime:"-",
 actualEndTime:sekarang,
+overdueNotified:false,
 
 lastUser: currentBike.borrowedBy,
 lastReturned: sekarang
@@ -1207,6 +1266,7 @@ Status:
 });
 
 await loadBikes();
+await checkOverdueNotification();
 
 }
 
@@ -1281,6 +1341,7 @@ Status:
 });
 	
 await loadBikes();
+await checkOverdueNotification();
 
 }
 
