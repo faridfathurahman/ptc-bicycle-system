@@ -57,7 +57,7 @@ console.log("ETA Minutes:", etaMinutes);
   overdueNotified: true
 });
 
-await fetch("https://api.line.me/v2/bot/message/push", {
+const response = await fetch("https://api.line.me/v2/bot/message/push", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -81,7 +81,8 @@ Status:
     ]
   })
 });
-
+console.log("LINE Status:", response.status);
+console.log("LINE Response:", await response.text());
       }
     }
 
