@@ -60,8 +60,7 @@ await fetch("https://api.line.me/v2/bot/message/push", {
       {
         type: "text",
         text:
-`🚨 Bicycle Overdue
-🚨 自転車返却遅延
+`🚨 自転車返却遅延 / Bicycle Overdue
 
 Bike : ${bike.name}
 User : ${bike.borrowedBy}
