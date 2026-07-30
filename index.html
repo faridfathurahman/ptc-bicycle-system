@@ -928,75 +928,9 @@ window.loadBikes = loadBikes;
 	// ===============================
 // Check Overdue Notification
 // ===============================
-let checkingOverdue = false;
 
-async function checkOverdueNotification(){
 
-    if(checkingOverdue) return;
 
-    checkingOverdue = true;
-
-    try{
-
-        const snapshot = await getDocs(collection(db,"Bikes"));
-
-        const now = new Date();
-        const currentMinutes =
-            now.getHours()*60 + now.getMinutes();
-
-        for (const item of snapshot.docs){
-
-            const bike = item.data();
-
-            if(bike.status !== "borrowed") continue;
-
-            if(!bike.estimatedEndTime || bike.estimatedEndTime=="-") continue;
-
-            if(bike.overdueNotified) continue;
-
-            const parts = bike.estimatedEndTime.split(":");
-
-            const etaMinutes =
-                parseInt(parts[0]) * 60 +
-                parseInt(parts[1]);
-
-            if(currentMinutes >= etaMinutes){
-
-                console.log("OVERDUE:", bike.name);
-
-                const res = await fetch("/.netlify/functions/send-line",{
-                    method:"POST",
-                    headers:{
-                        "Content-Type":"application/json"
-                    },
-                    body:JSON.stringify({
-                        message:
-`🚨 自転車返却遅延 / Bicycle Overdue
-
-Bike : ${bike.name}
-User : ${bike.borrowedBy}
-
-Status:
-🔴 Overdue / 返却遅延`
-                    })
-                });
-
-                console.log(await res.text());
-
-                await updateDoc(doc(db,"Bikes",item.id),{
-                    overdueNotified:true
-                });
-
-            }
-
-        }
-
-    } finally {
-
-        checkingOverdue = false;
-
-    }
-    }
 window.checkUserPassword = async function(id){
 
     const nama =
@@ -1159,7 +1093,7 @@ Status:
 });
 	
 await loadBikes();
-await checkOverdueNotification();
+
 
 }
 
@@ -1274,12 +1208,11 @@ Bike : ${currentBike.name}
 User : ${currentBike.borrowedBy}
 
 Status:
-🔵 Returned / 返却済み`
+🔵  返却済み / Returned`
 })
 });
 
 await loadBikes();
-await checkOverdueNotification();
 
 }
 
@@ -1339,8 +1272,7 @@ await fetch("/.netlify/functions/send-line",{
     },
     body:JSON.stringify({
       message:
-`⚠️ Bicycle Problem
-⚠️ 自転車異常
+`⚠️ 自転車異常 / Bicycle Problem
 
 Bike : ${bikeName}
 User : ${reporter}
@@ -1349,12 +1281,12 @@ Problem:
 ${problem}
 
 Status:
-🟠 Under Inspection / 点検中`
+🟠 点検中 / Under Inspection`
     })
 });
 	
 await loadBikes();
-await checkOverdueNotification();
+
 
 }
 
@@ -1369,14 +1301,11 @@ bikeParam + " - PTC Bicycle";
 document.getElementById("searchBike").value = "";
 
 loadBikes().then(()=>{
-    checkOverdueNotification();
-});
 
 onSnapshot(
     collection(db,"Bikes"),
     async ()=>{
         await loadBikes();
-        await checkOverdueNotification();
     }
 );
 
@@ -1384,8 +1313,7 @@ onSnapshot(
     collection(db,"Maintenance"),
     async ()=>{
         await loadBikes();
-        await checkOverdueNotification();
-    }
+   }
 );
 
 </script>
