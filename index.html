@@ -928,40 +928,49 @@ window.loadBikes = loadBikes;
 	// ===============================
 // Check Overdue Notification
 // ===============================
+let checkingOverdue = false;
+
 async function checkOverdueNotification(){
 
-    const snapshot = await getDocs(collection(db,"Bikes"));
+    if(checkingOverdue) return;
 
-    const now = new Date();
-    const currentMinutes = now.getHours()*60 + now.getMinutes();
+    checkingOverdue = true;
 
-    for (const item of snapshot.docs){
+    try{
 
-        const bike = item.data();
+        const snapshot = await getDocs(collection(db,"Bikes"));
 
-        if(bike.status !== "borrowed") continue;
+        const now = new Date();
+        const currentMinutes =
+            now.getHours()*60 + now.getMinutes();
 
-        if(!bike.estimatedEndTime || bike.estimatedEndTime=="-") continue;
+        for (const item of snapshot.docs){
 
-        if(bike.overdueNotified) continue;
+            const bike = item.data();
 
-        const parts = bike.estimatedEndTime.split(":");
+            if(bike.status !== "borrowed") continue;
 
-        const etaMinutes =
-            parseInt(parts[0]) * 60 +
-            parseInt(parts[1]);
+            if(!bike.estimatedEndTime || bike.estimatedEndTime=="-") continue;
 
-        if(currentMinutes >= etaMinutes){
+            if(bike.overdueNotified) continue;
 
-            console.log("OVERDUE:", bike.name);
+            const parts = bike.estimatedEndTime.split(":");
 
-            const res = await fetch("/.netlify/functions/send-line",{
-                method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify({
-                    message:
+            const etaMinutes =
+                parseInt(parts[0]) * 60 +
+                parseInt(parts[1]);
+
+            if(currentMinutes >= etaMinutes){
+
+                console.log("OVERDUE:", bike.name);
+
+                const res = await fetch("/.netlify/functions/send-line",{
+                    method:"POST",
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({
+                        message:
 `🚨 Bicycle Overdue
 🚨 自転車返却遅延
 
@@ -970,19 +979,26 @@ User : ${bike.borrowedBy}
 
 Status:
 🔴 Overdue / 返却遅延`
-                })
-            });
+                    })
+                });
 
-            console.log(await res.text());
+                console.log(await res.text());
 
-            await updateDoc(doc(db,"Bikes",item.id),{
-                overdueNotified:true
-            });
+                await updateDoc(doc(db,"Bikes",item.id),{
+                    overdueNotified:true
+                });
+
+            }
 
         }
 
+    } finally {
+
+        checkingOverdue = false;
+
     }
 
+}
 }
 
 window.checkUserPassword = async function(id){
