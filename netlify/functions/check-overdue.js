@@ -43,19 +43,23 @@ exports.handler = async () => {
 
         console.log(`${bike.name} is overdue`);
 
-        await fetch("https://api.line.me/v2/bot/message/push", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization":
-              "Bearer " + process.env.LINE_CHANNEL_ACCESS_TOKEN
-          },
-          body: JSON.stringify({
-            to: "Ud7e2925e426ea4d509d2edac5384028",
-            messages: [
-              {
-                type: "text",
-                text:
+     await doc.ref.update({
+  overdueNotified: true
+});
+
+await fetch("https://api.line.me/v2/bot/message/push", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization":
+      "Bearer " + process.env.LINE_CHANNEL_ACCESS_TOKEN
+  },
+  body: JSON.stringify({
+    to: "Ud7e2925e426ea4d509d2edac5384028",
+    messages: [
+      {
+        type: "text",
+        text:
 `🚨 Bicycle Overdue
 🚨 自転車返却遅延
 
@@ -64,14 +68,10 @@ User : ${bike.borrowedBy}
 
 Status:
 🔴 Overdue / 返却遅延`
-              }
-            ]
-          })
-        });
-
-        await doc.ref.update({
-          overdueNotified: true
-        });
+      }
+    ]
+  })
+});
 
       }
     }
