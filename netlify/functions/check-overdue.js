@@ -15,29 +15,52 @@ const db = admin.firestore();
 
 exports.handler = async () => {
   try {
-
     const snapshot = await db.collection("Bikes").get();
 
+    // Waktu Jepang
     const now = new Date();
 
-console.log("Server Time:", now.toString());
-console.log("ISO:", now.toISOString());
-    const currentMinutes =
-      now.getHours() * 60 +
-      now.getMinutes();
-console.log("Current Time:", now.getHours() + ":" + now.getMinutes());
-    for (const doc of snapshot.docs) {
+    const japan = new Date(
+      now.toLocaleString("en-US", {
+        timeZone: "Asia/Tokyo"
+      })
+    );
 
+    const currentMinutes =
+      japan.getHours() * 60 +
+      japan.getMinutes();
+
+    console.log("Server Time:", now.toString());
+    console.log("Japan Time:", japan.toString());
+    console.log(
+      "Current Time:",
+      japan.getHours() + ":" + japan.getMinutes()
+    );
+    console.log("Current Minutes:", currentMinutes);
+
+    // LINE pribadi + LINE grup
+    const targets = [
+      "Ud7e29225e426ea4d509d2edac5384028",
+      "Cb343324b7e166cb4b80e1e1cb8670aa7"
+    ];
+
+    for (const doc of snapshot.docs) {
       const bike = doc.data();
-console.log("==========");
-console.log("Bike:", bike.name);
-console.log("Status:", bike.status);
-console.log("ETA:", bike.estimatedEndTime);
-console.log("Notified:", bike.overdueNotified);
+
+      console.log("==========");
+      console.log("Bike:", bike.name);
+      console.log("Status:", bike.status);
+      console.log("ETA:", bike.estimatedEndTime);
+      console.log("Notified:", bike.overdueNotified);
 
       if (bike.status !== "borrowed") continue;
 
-      if (!bike.estimatedEndTime || bike.estimatedEndTime === "-") continue;
+      if (
+        !bike.estimatedEndTime ||
+        bike.estimatedEndTime === "-"
+      ) {
+        continue;
+      }
 
       if (bike.overdueNotified) continue;
 
@@ -46,43 +69,104 @@ console.log("Notified:", bike.overdueNotified);
       const etaMinutes =
         parseInt(parts[0]) * 60 +
         parseInt(parts[1]);
+
       console.log("Current Minutes:", currentMinutes);
-console.log("ETA Minutes:", etaMinutes);
+      console.log("ETA Minutes:", etaMinutes);
 
       if (currentMinutes >= etaMinutes) {
 
-        console.log("SEND LINE:", bike.name);
+        console.log("OVERDUE:", bike.name);
 
-     await doc.ref.update({
-  overdueNotified: true
-});
-
-const response = await fetch("https://api.line.me/v2/bot/message/push", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization":
-      "Bearer " + process.env.LINE_CHANNEL_ACCESS_TOKEN
-  },
-  body: JSON.stringify({
-    to: "Ud7e2925e426ea4d509d2edac5384028",
-    messages: [
-      {
-        type: "text",
-        text:
+        const message =
 `🚨 自転車返却遅延 / Bicycle Overdue
 
 Bike : ${bike.name}
 User : ${bike.borrowedBy}
 
 Status:
-🔴 Overdue / 返却遅延`
-      }
-    ]
-  })
-});
-console.log("LINE Status:", response.status);
-console.log("LINE Response:", await response.text());
+🔴 Overdue / 返却遅延`;
+
+        let allSuccess = true;
+
+        // Kirim ke LINE pribadi dan grup
+        for (const target of targets) {
+
+          try {
+
+            const response = await fetch(
+              "https://api.line.me/v2/bot/message/push",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization":
+                    "Bearer " +
+                    process.env.LINE_CHANNEL_ACCESS_TOKEN
+                },
+                body: JSON.stringify({
+                  to: target,
+                  messages: [
+                    {
+                      type: "text",
+                      text: message
+                    }
+                  ]
+                })
+              }
+            );
+
+            const responseText =
+              await response.text();
+
+            console.log(
+              "LINE Target:",
+              target
+            );
+
+            console.log(
+              "LINE Status:",
+              response.status
+            );
+
+            console.log(
+              "LINE Response:",
+              responseText
+            );
+
+            if (!response.ok) {
+              allSuccess = false;
+            }
+
+          } catch (lineError) {
+
+            console.error(
+              "LINE Send Error:",
+              lineError
+            );
+
+            allSuccess = false;
+          }
+        }
+
+        // Hanya update jika semua LINE berhasil
+        if (allSuccess) {
+
+          await doc.ref.update({
+            overdueNotified: true
+          });
+
+          console.log(
+            "Overdue notification completed:",
+            bike.name
+          );
+
+        } else {
+
+          console.log(
+            "Overdue notification failed. Will retry:",
+            bike.name
+          );
+        }
       }
     }
 
