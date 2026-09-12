@@ -1074,13 +1074,20 @@ alert(
 const bikeDoc = await getDoc(doc(db,"Bikes",id));
 const bike = bikeDoc.data();
 
-await fetch("/.netlify/functions/send-line",{
-    method:"POST",
-    headers:{
-        "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-        message:
+try {
+
+    console.log("=== LINE BORROW START ===");
+    console.log("Bike:", bike.name);
+    console.log("User:", nama);
+    console.log("ETA:", estimasi);
+
+    const lineResponse = await fetch("/.netlify/functions/send-line", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            message:
 `🚲 自転車貸出 / Bicycle Borrowed
 
 Bike : ${bike.name}
@@ -1089,8 +1096,23 @@ ETA  : ${estimasi}
 
 Status:
 🟢 貸出中 / Borrowed`
-    })
-});
+        })
+    });
+
+    console.log("LINE HTTP STATUS:", lineResponse.status);
+
+    const lineResult = await lineResponse.text();
+
+    console.log("LINE RESPONSE:", lineResult);
+
+    console.log("=== LINE BORROW END ===");
+
+} catch (error) {
+
+    console.error("=== LINE SEND ERROR ===");
+    console.error(error);
+
+}
 	
 await loadBikes();
 
