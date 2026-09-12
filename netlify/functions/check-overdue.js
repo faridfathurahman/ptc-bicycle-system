@@ -185,3 +185,7 @@ Status:
     };
   }
 };
+
+exports.config = {
+  schedule: "*/5 * * * *"
+};
