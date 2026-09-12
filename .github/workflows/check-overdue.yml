@@ -1,8 +1,6 @@
 name: Check Bicycle Overdue
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
