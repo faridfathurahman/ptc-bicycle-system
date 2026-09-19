@@ -13,7 +13,7 @@ exports.handler = async (event) => {
     const message = body.message;
 
     const targets = [
-      "Ud7e29225e426ea4d509d2edac5384028",
+      
       "Cb343324b7e166cb4b80e1e1cb8670aa7"
     ];
 
